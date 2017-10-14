@@ -49,22 +49,33 @@ app.get("/", function(req, res) {
 
 
 app.get("/:lat/:lon", function(req, res) {
-  var lat = Math.round(req.params.lat * 10000) / 10000 
-  var lon = Math.round(req.params.lon * 10000) / 10000
+  // var lat = Math.round(req.params.lat * 10000) / 10000 
+  // var lon = Math.round(req.params.lon * 10000) / 10000
 
-  db.collection("ar").find({
-    "latitude" : lat,
-    "longitude" : lon
-  }).toArray().then(function(arr) {
-    console.log(arr)
-  })
+  // db.collection("ar").find({
+  //   "latitude" : lat,
+  //   "longitude" : lon
+  // }).toArray().then(function(arr) {
+  //   console.log(arr)
+  // })
 
-    // if (results.length > 0) 
-    // db.collection('item').find({"latitude", req}).count()
-    //   .then(function(numItems) {
-    //     console.log(numItems); // Use this to debug
-    //     callback(numItems);
-    // })
+  var ret = {
+    "posts" : [ 
+      {
+        "username" : "Aditya",
+        "textpost" : "Hi!!!!"
+      },
+      {
+        "username" : "Trevor",
+        "textpost" : "Hell!!!"
+      }
+    ]
+    
+  }
+
+  res.status(200).json(ret);
+
+   
 })
 
 
@@ -119,14 +130,7 @@ app.post("/addNewLocation/:lat/:lon", function(req, res) {
           res.status(400).send("New entry added!")
         })
       }
-  })
-  if (db.collection("ar").find({"latitude": lat, 'longitude': lon}).count() > 0) {
-    
-
-
-  } else {
-    
-  }        
+  })        
 })
 
 
