@@ -83,8 +83,8 @@ app.get("/:lat/:lon", function(req, res) {
 
 app.post("/getImage", function(req, res) {
 
-  var username = param.body.username
-  var text = param.body.textpost
+  var username = req.body.username
+  var text = req.body.textpost
 
   Jimp.read("./img.png", function (err, image) {
   Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
