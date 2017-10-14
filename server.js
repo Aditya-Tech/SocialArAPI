@@ -5,10 +5,15 @@ var express = require('express'),
   mongodb = require("mongodb"),
   ObjectID = mongodb.ObjectID,
   db,
-  path = require('path');
+  path = require('path'),
+  Jimp = require("jimp")
+
+
+
 
 
 app.use(cors());
+
 
 const MongoClient = require('mongodb').MongoClient
 
@@ -79,6 +84,24 @@ app.get("/:lat/:lon", function(req, res) {
 })
 
 
+app.get("/getImage", function(req, res) {
+
+  var username = param.body.username
+  var text = param.body.textpost
+
+  Jimp.read("./img.png", function (err, image) {
+  Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
+  image.print(font, 30, 60, username, 700);
+  }).then(
+    Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
+    image.print(font, 30, 110, text, 700);
+    image.getBase64(Jimp.MIME_PNG, function(err, enc) {
+      res.status(200).send(enc)
+    });
+  }))
+});
+})
+
 
 app.post("/addNewLocation/:lat/:lon", function(req, res) {
   var lat = Math.round(req.params.lat * 10000) / 10000 
@@ -127,7 +150,7 @@ app.post("/addNewLocation/:lat/:lon", function(req, res) {
             process.exit(1)
           }
           console.log(toPost)
-          res.status(400).send("New entry added!")
+          res.status(200).send("New entry added!")
         })
       }
   })        
