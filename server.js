@@ -51,41 +51,68 @@ app.get("/", function(req, res) {
 
 
 app.get("/:lat/:lon", function(req, res) {
-  // var lat = Math.round(req.params.lat * 10000) / 10000 
-  // var lon = Math.round(req.params.lon * 10000) / 10000
+  var lat = Math.round(req.params.lat * 1000) / 1000 
+  var lon = Math.round(req.params.lon * 1000) / 1000
 
-  // db.collection("ar").find({
-  //   "latitude" : lat,
-  //   "longitude" : lon
-  // }).toArray().then(function(arr) {
-  //   console.log(arr)
-  // })
+  db.collection("ar").find({
+    "latitude" : lat,
+    "longitude" : lon
+  }).toArray().then(function(arr) {
+    var encs = []
+    var posts = arr[0].posts
+    var len = posts.length;
+    var i = 0;
 
-  var ret = {
-    "posts" : [ 
-      {
-        "username" : "Aditya",
-        "textpost" : "Hi!!!!"
-      },
-      {
-        "username" : "Trevor",
-        "textpost" : "Hell!!!"
-      }
-    ]
+    encode(res, 0, posts, encs)
+
     
-  }
+  })
 
-  res.status(200).json(ret);
+  // var ret = {
+  //   "posts" : [ 
+  //     {
+  //       "username" : "Aditya",
+  //       "textpost" : "Hi!!!!"
+  //     },
+  //     {
+  //       "username" : "Trevor",
+  //       "textpost" : "Hell!!!"
+  //     }
+  //   ]
+    
+  // }
+
+  // res.status(200).json(ret);
 
    
 })
 
+function encode(res, cur, posts, encs) {
+  Jimp.read("./img.png", function (err, image) {
+        Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
+          console.log(posts[cur])
+
+        image.print(font, 30, 60, posts[cur].username, 700);
+        }).then(
+          Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
+          image.print(font, 30, 110, posts[cur].textpost, 700);
+          image.getBase64(Jimp.MIME_PNG, function(err, enc) {
+            console.log(enc.replace("data:image/png;base64,", "").trim())
+            encs.push(enc.replace("data:image/png;base64,", "").trim())
+
+            if (cur == posts.length - 1) {
+              res.status(200).send(posts);
+            } else {
+              encode(res, cur + 1, posts, encs)
+            }
+          });
+        }))
+      });
+}
 
 app.post("/getImage", function(req, res) {
-
   var username = req.body.username
   var text = req.body.textpost
-
   Jimp.read("./img.png", function (err, image) {
   Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
   image.print(font, 30, 60, username, 700);
@@ -102,8 +129,8 @@ app.post("/getImage", function(req, res) {
 
 
 app.post("/addNewLocation/:lat/:lon", function(req, res) {
-  var lat = Math.round(req.params.lat * 10000) / 10000 
-  var lon = Math.round(req.params.lon * 10000) / 10000
+  var lat = Math.round(req.params.lat * 1000) / 1000 
+  var lon = Math.round(req.params.lon * 1000) / 1000
   // var lat = req.params.lat.toFixed(5)
   // var lon = req.params.lon.toFixed(5)
   console.log("Latitude: " + lat)
@@ -118,6 +145,8 @@ app.post("/addNewLocation/:lat/:lon", function(req, res) {
       console.log("Entry already exists! Updating data...")
       db.collection("ar").update({"latitude": lat, "longitude": lon}, {$addToSet: { 
       "posts": {
+        "specific-latitude" : req.params.lat,
+        "specific-longitude" : req.params.lon,
         "username" : req.body.username,
         "textpost" : req.body.textpost,
         "time" : new Date()
@@ -135,6 +164,8 @@ app.post("/addNewLocation/:lat/:lon", function(req, res) {
           "longitude" : lon,
           "posts" : [
             {
+              "specific-latitude" : req.params.lat,
+              "specific-longitude" : req.params.lon,
               "username" : req.body.username,
               "textpost" : req.body.textpost,
               "time" : new Date()
