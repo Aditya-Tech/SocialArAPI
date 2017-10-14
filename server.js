@@ -9,9 +9,6 @@ var express = require('express'),
   Jimp = require("jimp")
 
 
-
-
-
 app.use(cors());
 
 
@@ -84,18 +81,19 @@ app.get("/:lat/:lon", function(req, res) {
 })
 
 
-app.get("/getImage", function(req, res) {
+app.post("/getImage", function(req, res) {
 
   var username = param.body.username
   var text = param.body.textpost
 
   Jimp.read("./img.png", function (err, image) {
   Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
-  image.print(font, 30, 60, username, 700);
+  image.print(font, 30, 60, bold(username), 700);
   }).then(
     Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
     image.print(font, 30, 110, text, 700);
     image.getBase64(Jimp.MIME_PNG, function(err, enc) {
+      console.log(enc)
       res.status(200).send(enc)
     });
   }))
