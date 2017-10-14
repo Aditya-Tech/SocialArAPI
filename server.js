@@ -49,19 +49,39 @@ app.get("/", function(req, res) {
 
 
 app.get("/:lat/:lon", function(req, res) {
+  //console.log(db.collection("ar").find({"latitude": Math.round(req.params.lat * 10000) / 10000 , 'longitude': Math.round(req.params.lon * 10000) / 10000}).count())
     // if (db.collection("ar").find({"latitude": Math.round(req.params.lat * 10000) / 10000 , 'longitude': Math.round(req.params.lon * 10000) / 10000}).count() == 0) {
     //   console.log("LOCATION DOESN'T EXIST IN DATABASE.")
     //   res.status(400).send("LOCATION DOESN'T EXIST IN DATABASE.")
     // } else {
     //   console.log(db.collection("ar").find({"latitude": Math.round(req.params.lat * 10000) / 10000, 'longitude': Math.round(req.params.lon * 10000) / 10000}));
-    //   res.status(200).send(db.collection("ar").find({"latitude": req.params.lat, 'longitude': req.params.lon}));
+    //   res.status(200).send(db.collection("ar").find({"latitude": Math.round(req.params.lat * 10000) / 10000, 'longitude': Math.round(req.params.lon * 10000) / 10000}));
     //   // console.log(JSON.stringify(db.collection("ar").find()));
     //   // res.status(200).send(db.collection("ar").find());
     // }
 
-    console.log("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam")
-    res.status(400).send("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam")
+    // console.log("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam")
+    // res.status(400).send("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam")
 
+
+
+
+
+    // Dummy Section
+
+    var json = [
+        {
+          "username": "Aditya",
+          "text": "Hello World!"
+        },
+        {
+          "username": "Trevor",
+          "text": "Hi World!"
+        }
+    ]
+    console.log(json)
+    res.status(400).send(json)
+    
 })
 
 app.post("/addNewLocation/:lat/:lon", function(req, res) {
