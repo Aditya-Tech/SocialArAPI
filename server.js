@@ -6,7 +6,10 @@ var express = require('express'),
   ObjectID = mongodb.ObjectID,
   db,
   path = require('path'),
-  Jimp = require("jimp")
+  Jimp = require("jimp"),
+  request = require('request'),
+  cheerio = require('cheerio'),
+  base64Img = require('base64-img')
 
 
 app.use(cors());
@@ -49,6 +52,161 @@ app.get("/", function(req, res) {
   });
 })
 
+app.post("/createTopic/:lat/:lon/", function(req, res) {
+  var url = "https://hackgt-api.ncrcloud.com/messaging/pubsub-topics"
+  var lat = Math.round(req.params.lat * 1000) / 1000 
+  var lon = Math.round(req.params.lon * 1000) / 1000
+
+  request.post({
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Basic dXNlclNhbXBsZTpQYXNzd29yZDEyIw==',
+      'Host': 'nep-gateway.swenglabs.ncr.com',
+      'nep-application-key': '8a808f0d515f1f1001515f1fdc010002',
+      'nep-correlation-id': ' 24qefhpqu9h3ro2gr'
+    },
+    url: url,
+    json: {"name": req.body.bus, "description": req.body.description, "journalEntryTypeId": {"name": "GATEWAY_SERVICE_POLICY_NOTIFICATION"}, "logPayload": true}
+  }, function(error, response, body) {
+
+    db.collection("ar").find({
+      "latitude" : lat,
+      "longitude" : lon
+    }).count().then(function(num) {
+      if (num > 0) {
+        db.collection("ar").update({"latitude": lat, "longitude": lon}, {$addToSet: { 
+        "topics": {
+          "specific-latitude" : req.params.lat,
+          "specific-longitude" : req.params.lon,
+          "topic" : req.body.bus,
+          "description" : req.body.description,
+          "time" : new Date()
+        }}})
+
+        res.status(200).send("New topic added!")
+
+      } else {
+        if((!req.body.bus || typeof req.body.bus != "string") || (!req.body.description || typeof req.body.description != "string")) {
+          res.status(400).send("400 Bad Request")
+        }
+
+        var toPost = {
+          "latitude" : lat,
+          "longitude" : lon,
+          "posts" : [],
+          "topics" : [{
+            "specific-latitude" : req.params.lat,
+            "specific-longitude" : req.params.lon,
+            "business" : req.body.bus,
+            "description" : req.body.description,
+            "time" : new Date()
+          }]
+        }
+     
+        db.collection("ar").insertOne(toPost, function(err) {
+          if (err) {
+            console.log("Error adding new post! " + err);
+            process.exit(1)
+          }
+          console.log(toPost)
+          res.status(200).send("New topic added!")
+        })
+      }
+    })
+
+    db.collection("topics").insertOne(toPost, function(err) {
+      if (err) {
+        console.log("Error adding new post! " + err);
+        process.exit(1)
+      }
+      console.log(toPost)
+      res.status(200).send("New topic added!")
+    })
+  })
+
+})
+
+
+app.get("/nearestJobs/:zip", function(req, res) {
+  var imgURLS = [];
+  var titles = [];
+  var companies = [];
+  var urls = [];
+  var all = [];
+  var url = "https://www.dice.com/jobs/sort-distance-pc-true-l-" + req.params.zip + "-radius-5-jobs"
+  request(url, function (error, response, html) {
+    if (!error && response.statusCode == 200) {
+      var $ = cheerio.load(html);
+      var j, k, m, n = 0;
+
+      $('img').attr('onerror', 'errorImg(this)').each(function(i, element) {
+        if (i > 0 && i < 6) {
+          console.log(i)
+          console.log("https://" + $(this).prop('src').replace("//", ""))
+          imgURLS.push("https://" + $(this).prop('src').replace("//", ""))
+
+          console.log($(this).prop('alt'))
+          companies.push($(this).prop('alt'))
+        }
+      })
+
+      $('a[itemprop="url"]').each(function(i, element) {
+        if (i < 5) {
+          console.log(i)
+          console.log("https://www.dice.com" + $(this).prop('href'))
+          urls.push("https://www.dice.com" + $(this).prop('href'))
+
+          console.log($(this).prop('title'))
+          titles.push($(this).prop('title'))
+        }
+      });
+
+      sendJobs(0, imgURLS, titles, companies, urls, all, res)
+    
+
+  }});
+})
+
+function sendJobs(cur, img, titles, comp, urls, all, toSend) {
+  base64Img.requestBase64(img[cur], function(err, res, body) {
+    console.log(img[cur])
+    all.push({
+      "company" : comp[cur],
+      "jobTitle" : titles[cur],
+      "url" : urls[cur],
+      "image" : body.replace("data:image/jpeg;base64,", "")
+    })
+    if (cur < 4) {
+      sendJobs(cur + 1, img, titles, comp, urls, all, toSend)
+    } else {
+      console.log(all)
+      toSend.status(200).send(all);
+    }
+  });    
+}
+
+
+
+app.get("/getTopics", function(req, res) {
+  var url = "hackgt-api.ncrcloud.com/messaging/pubsub-topics"
+  request({
+    headers: {
+      'Authorization': 'Basic dXNlclNhbXBsZTpQYXNzd29yZDEyIw==',
+      'nep-application-key': '8a808f0d515f1f1001515f1fdc010002',
+      'nep-correlation-id': 'messaging-example'
+    },
+    uri: url,
+    method: 'GET'
+  }, function (err, response, body) {
+    console.log("Hello")
+    res.status(200).json(response)
+  });
+
+
+
+
+})
+
 
 app.get("/:lat/:lon", function(req, res) {
   var lat = Math.round(req.params.lat * 1000) / 1000 
@@ -64,8 +222,6 @@ app.get("/:lat/:lon", function(req, res) {
     var i = 0;
 
     encode(res, 0, posts, encs)
-
-    
   })
 
   // var ret = {
@@ -170,7 +326,8 @@ app.post("/addNewLocation/:lat/:lon", function(req, res) {
               "textpost" : req.body.textpost,
               "time" : new Date()
             }
-          ]
+          ],
+          "topics" : []
         }
      
         db.collection("ar").insertOne(toPost, function(err) {
