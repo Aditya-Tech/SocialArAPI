@@ -93,8 +93,8 @@ app.post("/getImage", function(req, res) {
     Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
     image.print(font, 30, 110, text, 700);
     image.getBase64(Jimp.MIME_PNG, function(err, enc) {
-      console.log(enc)
-      res.status(200).send(enc)
+      console.log(enc.replace("data:image/png;base64,", "").trim())
+      res.status(200).send(enc.replace("data:image/png;base64,", "").trim())
     });
   }))
 });
