@@ -98,7 +98,7 @@ function encode(res, cur, posts, encs) {
           image.print(font, 30, 110, posts[cur].textpost, 700);
           image.getBase64(Jimp.MIME_PNG, function(err, enc) {
             console.log(enc.replace("data:image/png;base64,", "").trim())
-            encs.push(enc.replace("data:image/png;base64,", "").trim())
+            encs.push([posts[cur]['specific-latitude'], posts[cur]['specific-longitude'], enc.replace("data:image/png;base64,", "").trim()])
 
             if (cur == posts.length - 1) {
               res.status(200).send(encs);
