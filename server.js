@@ -88,7 +88,7 @@ app.post("/getImage", function(req, res) {
 
   Jimp.read("./img.png", function (err, image) {
   Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
-  image.print(font, 30, 60, bold(username), 700);
+  image.print(font, 30, 60, username, 700);
   }).then(
     Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
     image.print(font, 30, 110, text, 700);
