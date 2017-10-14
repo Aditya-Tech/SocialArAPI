@@ -101,7 +101,7 @@ function encode(res, cur, posts, encs) {
             encs.push(enc.replace("data:image/png;base64,", "").trim())
 
             if (cur == posts.length - 1) {
-              res.status(200).send(posts);
+              res.status(200).send(encs);
             } else {
               encode(res, cur + 1, posts, encs)
             }
