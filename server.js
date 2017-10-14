@@ -49,40 +49,25 @@ app.get("/", function(req, res) {
 
 
 app.get("/:lat/:lon", function(req, res) {
-  //console.log(db.collection("ar").find({"latitude": Math.round(req.params.lat * 10000) / 10000 , 'longitude': Math.round(req.params.lon * 10000) / 10000}).count())
-    // if (db.collection("ar").find({"latitude": Math.round(req.params.lat * 10000) / 10000 , 'longitude': Math.round(req.params.lon * 10000) / 10000}).count() == 0) {
-    //   console.log("LOCATION DOESN'T EXIST IN DATABASE.")
-    //   res.status(400).send("LOCATION DOESN'T EXIST IN DATABASE.")
-    // } else {
-    //   console.log(db.collection("ar").find({"latitude": Math.round(req.params.lat * 10000) / 10000, 'longitude': Math.round(req.params.lon * 10000) / 10000}));
-    //   res.status(200).send(db.collection("ar").find({"latitude": Math.round(req.params.lat * 10000) / 10000, 'longitude': Math.round(req.params.lon * 10000) / 10000}));
-    //   // console.log(JSON.stringify(db.collection("ar").find()));
-    //   // res.status(200).send(db.collection("ar").find());
-    // }
+  var lat = Math.round(req.params.lat * 10000) / 10000 
+  var lon = Math.round(req.params.lon * 10000) / 10000
 
-    // console.log("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam")
-    // res.status(400).send("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam")
+  db.collection("ar").find({
+    "latitude" : lat,
+    "longitude" : lon
+  }).toArray().then(function(arr) {
+    console.log(arr)
+  })
 
-
-
-
-
-    // Dummy Section
-
-    var json = [
-        {
-          "username": "Aditya",
-          "text": "Hello World!"
-        },
-        {
-          "username": "Trevor",
-          "text": "Hi World!"
-        }
-    ]
-    console.log(json)
-    res.status(400).send(json)
-    
+    // if (results.length > 0) 
+    // db.collection('item').find({"latitude", req}).count()
+    //   .then(function(numItems) {
+    //     console.log(numItems); // Use this to debug
+    //     callback(numItems);
+    // })
 })
+
+
 
 app.post("/addNewLocation/:lat/:lon", function(req, res) {
   var lat = Math.round(req.params.lat * 10000) / 10000 
@@ -92,24 +77,55 @@ app.post("/addNewLocation/:lat/:lon", function(req, res) {
   console.log("Latitude: " + lat)
   console.log("Longitude: " + lon)
 
-  if (db.collection("ar").find({"latitude": req.params.lat, 'longitude': req.params.lon}).count() > 0) {
-    console.log("Entry already exists! Updating data...")
-  } else {
-    if((!req.body.username || typeof req.body.username != "string") || (!req.body.textpost || typeof req.body.textpost != "string")) {
-      res.status(400).send("400 Bad Request")
-    }
 
-    req.body["latitude"] = lat;
-    req.body["longitude"] = lon;
-  
-    db.collection("ar").insertOne(req.body, function(err) {
-      if (err) {
-        console.log("Error adding new post! " + err);
-        process.exit(1)
+  db.collection("ar").find({
+    "latitude" : lat,
+    "longitude" : lon
+  }).count().then(function(num) {
+    if (num > 0) {
+      console.log("Entry already exists! Updating data...")
+      db.collection("ar").update({"latitude": lat, "longitude": lon}, {$addToSet: { 
+      "posts": {
+        "username" : req.body.username,
+        "textpost" : req.body.textpost,
+        "time" : new Date()
+      }}})
+
+      res.status(400).send("Entries updated!")
+
+    } else {
+        if((!req.body.username || typeof req.body.username != "string") || (!req.body.textpost || typeof req.body.textpost != "string")) {
+          res.status(400).send("400 Bad Request")
+        }
+
+        var toPost = {
+          "latitude" : lat,
+          "longitude" : lon,
+          "posts" : [
+            {
+              "username" : req.body.username,
+              "textpost" : req.body.textpost,
+              "time" : new Date()
+            }
+          ]
+        }
+     
+        db.collection("ar").insertOne(toPost, function(err) {
+          if (err) {
+            console.log("Error adding new post! " + err);
+            process.exit(1)
+          }
+          console.log(toPost)
+          res.status(400).send("New entry added!")
+        })
       }
-      console.log(req.body)
-      res.status(400).send("New entry added!")
-    })
+  })
+  if (db.collection("ar").find({"latitude": lat, 'longitude': lon}).count() > 0) {
+    
+
+
+  } else {
+    
   }        
 })
 
