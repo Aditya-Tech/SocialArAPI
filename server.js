@@ -187,7 +187,7 @@ function sendJobs(cur, img, titles, comp, urls, all, toSend) {
       "company" : comp[cur],
       "jobTitle" : titles[cur],
       "url" : urls[cur],
-      "image" : body.trim().replace("data:image/jpeg;base64,", "").replace("data:image/jpeg;base64", "").replace("data:image/png;base64,", "")
+      "image" : body.trim().replace("data:image/jpeg;base64,", "").replace("data:image/jpeg;base64", "").replace("data:image/png;base64,", "").split("base64,")[1]
     })
     if (cur < 4) {
       sendJobs(cur + 1, img, titles, comp, urls, all, toSend)
@@ -200,7 +200,9 @@ function sendJobs(cur, img, titles, comp, urls, all, toSend) {
 
 
 
-app.get("/getTopics", function(req, res) {
+app.get("/getTopics/:lat/:lon", function(req, res) {
+  var lat = Math.round(req.params.lat * 1000) / 1000 
+  var lon = Math.round(req.params.lon * 1000) / 1000
   var url = "hackgt-api.ncrcloud.com/messaging/pubsub-topics"
   request({
     headers: {
@@ -211,13 +213,17 @@ app.get("/getTopics", function(req, res) {
     uri: url,
     method: 'GET'
   }, function (err, response, body) {
-    console.log("Hello")
-    res.status(200).json(response)
+    db.collection("ar").find({
+      "latitude" : lat,
+      "longitude" : lon
+    }).toArray().then(function(arr) {
+      var encs = []
+      var topics = arr[0].topics
+      var len = topics.length;
+
+      encodeTopics(res, 0, topics, encs)
+    })
   });
-
-
-
-
 })
 
 
@@ -234,29 +240,36 @@ app.get("/:lat/:lon", function(req, res) {
     var len = posts.length;
     var i = 0;
 
-    encode(res, 0, posts, encs)
+    encodePosts(res, 0, posts, encs)
   })
-
-  // var ret = {
-  //   "posts" : [ 
-  //     {
-  //       "username" : "Aditya",
-  //       "textpost" : "Hi!!!!"
-  //     },
-  //     {
-  //       "username" : "Trevor",
-  //       "textpost" : "Hell!!!"
-  //     }
-  //   ]
-    
-  // }
-
-  // res.status(200).json(ret);
-
    
 })
 
-function encode(res, cur, posts, encs) {
+
+function encodeTopics(res, cur, topics, encs) {
+  Jimp.read("./verified-bubble.png", function (err, image) {
+        Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
+          console.log(topics[cur])
+
+        image.print(font, 30, 60, topics[cur].bus, 700);
+        }).then(
+          Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
+          image.print(font, 30, 110, topics[cur].description, 700);
+          image.getBase64(Jimp.MIME_PNG, function(err, enc) {
+            console.log(enc.replace("data:image/png;base64,", "").trim())
+            encs.push([topics[cur]['specific-latitude'], topics[cur]['specific-longitude'], enc.replace("data:image/png;base64,", "").trim()])
+
+            if (cur == topics.length - 1) {
+              res.status(200).send(encs);
+            } else {
+              encodeTopics(res, cur + 1, topics, encs)
+            }
+          });
+        }))
+      });
+}
+
+function encodePosts(res, cur, posts, encs) {
   Jimp.read("./img.png", function (err, image) {
         Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
           console.log(posts[cur])
@@ -272,7 +285,7 @@ function encode(res, cur, posts, encs) {
             if (cur == posts.length - 1) {
               res.status(200).send(encs);
             } else {
-              encode(res, cur + 1, posts, encs)
+              encodePosts(res, cur + 1, posts, encs)
             }
           });
         }))
