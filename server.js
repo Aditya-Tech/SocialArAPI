@@ -113,18 +113,31 @@ app.post("/createTopic/:lat/:lon/", function(req, res) {
         })
       }
     })
-
-    db.collection("topics").insertOne(toPost, function(err) {
-      if (err) {
-        console.log("Error adding new post! " + err);
-        process.exit(1)
-      }
-      console.log(toPost)
-      res.status(200).send("New topic added!")
-    })
   })
 
 })
+
+// app.get("/getBusinesses/:lat/:lon", function(req, res) {
+//   var lat = Math.round(req.params.lat * 1000) / 1000 
+//   var lon = Math.round(req.params.lon * 1000) / 1000
+//   request.get({
+//     headers: {
+//       'Authorization': 'Basic dXNlclNhbXBsZTpQYXNzd29yZDEyIw==',
+//       'Host': 'nep-gateway.swenglabs.ncr.com',
+//       'nep-application-key': '8a808f0d515f1f1001515f1fdc010002',
+//       'nep-correlation-id': ' 24qefhpqu9h3ro2gr'
+//     },
+//     url: url,
+//   }, function(error, response, body) {
+//     db.collection("ar").find({
+//       "latitude" : lat,
+//       "longitude" : lon
+//     }).toArray().then(function(arr) {
+      
+//     })
+//   }
+  
+// })
 
 
 app.get("/nearestJobs/:zip", function(req, res) {
@@ -174,7 +187,7 @@ function sendJobs(cur, img, titles, comp, urls, all, toSend) {
       "company" : comp[cur],
       "jobTitle" : titles[cur],
       "url" : urls[cur],
-      "image" : body.replace("data:image/jpeg;base64,", "")
+      "image" : body.trim().replace("data:image/jpeg;base64,", "").replace("data:image/jpeg;base64", "").replace("data:image/png;base64,", "")
     })
     if (cur < 4) {
       sendJobs(cur + 1, img, titles, comp, urls, all, toSend)
