@@ -274,10 +274,10 @@ function encodePosts(res, cur, posts, encs) {
         Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
           console.log(posts[cur])
 
-        image.print(font, 30, 60, posts[cur].username, 700);
+        image.print(font, 30, 80, posts[cur].username, 700);
         }).then(
           Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
-          image.print(font, 30, 110, posts[cur].textpost, 700);
+          image.print(font, 30, 130, posts[cur].textpost + " (" + posts[cur].time + "): ", 700);
           image.getBase64(Jimp.MIME_PNG, function(err, enc) {
             console.log(enc.replace("data:image/png;base64,", "").trim())
             encs.push([posts[cur]['specific-latitude'], posts[cur]['specific-longitude'], enc.replace("data:image/png;base64,", "").trim()])
