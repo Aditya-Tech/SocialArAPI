@@ -187,7 +187,7 @@ function sendJobs(cur, img, titles, comp, urls, all, toSend) {
       "company" : comp[cur],
       "jobTitle" : titles[cur],
       "url" : urls[cur],
-      "image" : body.trim().replace("data:image/jpeg;base64,", "").replace("data:image/jpeg;base64", "").replace("data:image/png;base64,", "").split("base64,")[1]
+      "image" : body.trim().split("base64,")[1]
     })
     if (cur < 4) {
       sendJobs(cur + 1, img, titles, comp, urls, all, toSend)
