@@ -78,7 +78,7 @@ app.post("/createTopic/:lat/:lon/", function(req, res) {
         "topics": {
           "specific-latitude" : req.params.lat,
           "specific-longitude" : req.params.lon,
-          "topic" : req.body.bus,
+          "bus" : req.body.bus,
           "description" : req.body.description,
           "time" : new Date()
         }}})
@@ -97,7 +97,7 @@ app.post("/createTopic/:lat/:lon/", function(req, res) {
           "topics" : [{
             "specific-latitude" : req.params.lat,
             "specific-longitude" : req.params.lon,
-            "business" : req.body.bus,
+            "bus" : req.body.bus,
             "description" : req.body.description,
             "time" : new Date()
           }]
@@ -251,7 +251,7 @@ function encodeTopics(res, cur, topics, encs) {
         Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
           console.log(topics[cur])
 
-        image.print(font, 30, 80, topics[cur].bus + " (" + topics[cur].time + "): ", 700);
+        image.print(font, 30, 80, topics[cur].bus + " (" + new Date(topics[cur].time.toDateString()) + "): ", 700);
         }).then(
           Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
           image.print(font, 30, 130, topics[cur].description, 700);
@@ -277,7 +277,7 @@ function encodePosts(res, cur, posts, encs) {
         image.print(font, 30, 80, posts[cur].username, 700);
         }).then(
           Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
-          image.print(font, 30, 130, posts[cur].textpost + " (" + posts[cur].time + "): ", 700);
+          image.print(font, 30, 130, posts[cur].textpost + " (" + new Date(topics[cur].time.toDateString()) + "): ", 700);
           image.getBase64(Jimp.MIME_PNG, function(err, enc) {
             console.log(enc.replace("data:image/png;base64,", "").trim())
             encs.push([posts[cur]['specific-latitude'], posts[cur]['specific-longitude'], enc.replace("data:image/png;base64,", "").trim()])
